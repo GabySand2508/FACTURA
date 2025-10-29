@@ -8,33 +8,43 @@
   <p>Generando archivo de fecha...</p>
 
   <script>
-    // Esperar a que cargue la página antes de ejecutar
     window.onload = function () {
       try {
-        // Obtener fecha y hora actual (zona horaria de Perú)
-        const fecha = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' });
-        const contenido = "Fecha y hora actual: " + fecha;
+        // Obtener parámetros desde la URL
+        const params = new URLSearchParams(window.location.search);
+        const refno = params.get('refno') || 'No especificado';
+        const fecha = params.get('fecha') || 'No especificada';
 
-        // Crear el archivo de texto
+        // Mostrar los datos en pantalla
+        document.body.innerHTML = `
+          <p><strong>Ref No:</strong> ${refno}</p>
+          <p><strong>Fecha:</strong> ${fecha}</p>
+          <p>Generando archivo...</p>
+        `;
+
+        // Crear contenido del archivo
+        const contenido = `Referencia: ${refno}\nFecha: ${fecha}`;
+
+        // Crear archivo
         const blob = new Blob([contenido], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
 
-        // Crear un enlace temporal invisible
+        // Crear enlace invisible para descarga
         const link = document.createElement("a");
         link.href = url;
-        link.download = "fecha.txt";
+        link.download = `factura_${refno}.txt`;
         link.style.display = "none";
         document.body.appendChild(link);
 
-        // Forzar la descarga
+        // Forzar descarga
         link.click();
 
-        // Limpiar el enlace
+        // Limpiar
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-        // Mostrar confirmación en pantalla
-        document.body.innerHTML = "<p>✅ Archivo 'fecha.txt' descargado correctamente.</p>";
+        // Confirmación
+        document.body.innerHTML += "<p>✅ Archivo descargado correctamente.</p>";
 
       } catch (error) {
         console.error(error);
