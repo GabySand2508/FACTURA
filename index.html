@@ -150,11 +150,11 @@
         pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
         pdf.save(`invoice_${refno}.pdf`);
 
-        document.getElementById('status').textContent = "✅ PDF descargado correctamente.";
+        
 
       } catch (error) {
         console.error(error);
-        document.getElementById('status').textContent = "❌ Error al generar el PDF.";
+        
       }
     };
   </script>
