@@ -7,6 +7,7 @@
     body {
       font-family: Arial, sans-serif;
       font-size: 11px;
+      margin: 40px;
     }
 
     table {
@@ -21,10 +22,6 @@
       padding: 8px;
       text-align: left;
       word-wrap: break-word;
-    }
-
-    .no-border {
-      border: none;
     }
 
     .center {
@@ -44,82 +41,121 @@
       margin-right: 60px;
       margin-top: 30px;
     }
+
+    #status {
+      text-align: center;
+      font-size: 14px;
+      color: #444;
+      margin-top: 20px;
+    }
   </style>
+
+  <!-- Librerías para generar el PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
-  <div class="center" style="margin-top: 100px;">INVOICE</div>
+  <div id="invoice-content">
+    <div class="center" style="margin-top: 100px;">INVOICE</div>
 
-  <table>
-    <tr>
-      <td colspan="4"><strong>Invoice No.:</strong> <span id="refno"></span></td>
-      <td colspan="3"><strong>Invoice Date:</strong> <span id="fecha"></span></td>
-      <td colspan="3"><strong>Tracking No.:</strong> <span id="trackingno"></span></td>
-    </tr>
-    <tr>
-      <td colspan="10">
-        <strong>Shipper:</strong><br><br>
-        Name: aliexpress<br><br>
-        Address: China Guangdong dongguan zhongtang jinyuanlu Sanhe Logistics Center Logistics Park C<br>
-        Warehouse First Floor, zhongtang, dongguan, guangdong, China<br><br>
-        Tel: 19151970769
-      </td>
-    </tr>
-    <tr>
-      <td colspan="10">
-        <strong>Consignee:</strong><br><br>
-        RUC: <span id="dni"></span><br><br>
-        <span class="highlight">Name:</span> <span id="name2"></span><br><br>
-        <span class="highlight">Address:</span> <span id="direccion"></span>
-      </td>
-    </tr>
-    <tr>
-      <th colspan="4">Description</th>
-      <th colspan="2">Quantity</th>
-      <th colspan="2">Total weight (KG)</th>
-      <th colspan="2">Total value (USD)</th>
-    </tr>
-    <tr>
-      <td colspan="4" id="pkg_desc"></td>
-      <td colspan="2" id="unidad"></td>
-      <td colspan="2" id="kilos"></td>
-      <td colspan="2" id="value"></td>
-    </tr>
-  </table>
+    <table>
+      <tr>
+        <td colspan="4"><strong>Invoice No.:</strong> <span id="refno"></span></td>
+        <td colspan="3"><strong>Invoice Date:</strong> <span id="fecha"></span></td>
+        <td colspan="3"><strong>Tracking No.:</strong> <span id="trackingno"></span></td>
+      </tr>
+      <tr>
+        <td colspan="10">
+          <strong>Shipper:</strong><br><br>
+          Name: aliexpress<br><br>
+          Address: China Guangdong dongguan zhongtang jinyuanlu Sanhe Logistics Center Logistics Park C<br>
+          Warehouse First Floor, zhongtang, dongguan, guangdong, China<br><br>
+          Tel: 19151970769
+        </td>
+      </tr>
+      <tr>
+        <td colspan="10">
+          <strong>Consignee:</strong><br><br>
+          RUC: <span id="dni"></span><br><br>
+          <span class="highlight">Name:</span> <span id="name2"></span><br><br>
+          <span class="highlight">Address:</span> <span id="direccion"></span>
+        </td>
+      </tr>
+      <tr>
+        <th colspan="4">Description</th>
+        <th colspan="2">Quantity</th>
+        <th colspan="2">Total weight (KG)</th>
+        <th colspan="2">Total value (USD)</th>
+      </tr>
+      <tr>
+        <td colspan="4" id="pkg_desc"></td>
+        <td colspan="2" id="unidad"></td>
+        <td colspan="2" id="kilos"></td>
+        <td colspan="2" id="value"></td>
+      </tr>
+    </table>
 
-  <div class="total">
-    Total Invoice Value (USD): <span id="total_value"></span>
+    <div class="total">
+      Total Invoice Value (USD): <span id="total_value"></span>
+    </div>
   </div>
 
+  <div id="status">⏳ Generando PDF...</div>
+
   <script>
-    window.onload = function() {
-      const params = new URLSearchParams(window.location.search);
+    window.onload = async function() {
+      try {
+        const params = new URLSearchParams(window.location.search);
 
+        // Mapeo de parámetros → IDs de HTML
+        const mapping = {
+          refno: 'refno',
+          fecha: 'fecha',
+          trackingno: 'trackingno',
+          DNI: 'dni',
+          name2: 'name2',
+          DIRECCION: 'direccion',
+          pkg_desc: 'pkg_desc',
+          UNIDAD: 'unidad',
+          KILOS: 'kilos',
+          value: 'value'
+        };
 
-      const mapping = {
-        refno: 'refno',
-        fecha: 'fecha',
-        trackingno: 'trackingno',
-        DNI: 'dni',
-        name2: 'name2',
-        DIRECCION: 'direccion',
-        pkg_desc: 'pkg_desc',
-        UNIDAD: 'unidad',
-        KILOS: 'kilos',
-        value: 'value'
-      };
-
-      for (const key in mapping) {
-        const element = document.getElementById(mapping[key]);
-        if (element) {
-          element.textContent = params.get(key) || '';
+        // Reemplazar valores en el HTML
+        for (const key in mapping) {
+          const element = document.getElementById(mapping[key]);
+          if (element) {
+            element.textContent = params.get(key) || '';
+          }
         }
+        document.getElementById('total_value').textContent = params.get('value') || '';
+
+        const refno = params.get('refno') || 'invoice';
+
+        // Esperar un breve momento para renderizar
+        await new Promise(r => setTimeout(r, 500));
+
+        // Generar PDF con html2canvas + jsPDF
+        const { jsPDF } = window.jspdf;
+        const invoice = document.getElementById("invoice-content");
+
+        const canvas = await html2canvas(invoice, { scale: 2 });
+        const imgData = canvas.toDataURL("image/png");
+
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`invoice_${refno}.pdf`);
+
+        document.getElementById('status').textContent = "✅ PDF descargado correctamente.";
+
+      } catch (error) {
+        console.error(error);
+        document.getElementById('status').textContent = "❌ Error al generar el PDF.";
       }
-
-
-      document.getElementById('total_value').textContent = params.get('value') || '';
-
-   
     };
   </script>
 
