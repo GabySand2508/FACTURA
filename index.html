@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Descargar fecha</title>
+</head>
+<body>
+  <p>Generando archivo de fecha...</p>
+
+  <script>
+    // Esperar a que cargue la página antes de ejecutar
+    window.onload = function () {
+      try {
+        // Obtener fecha y hora actual (zona horaria de Perú)
+        const fecha = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' });
+        const contenido = "Fecha y hora actual: " + fecha;
+
+        // Crear el archivo de texto
+        const blob = new Blob([contenido], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+
+        // Crear un enlace temporal invisible
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "fecha.txt";
+        link.style.display = "none";
+        document.body.appendChild(link);
+
+        // Forzar la descarga
+        link.click();
+
+        // Limpiar el enlace
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        // Mostrar confirmación en pantalla
+        document.body.innerHTML = "<p>✅ Archivo 'fecha.txt' descargado correctamente.</p>";
+
+      } catch (error) {
+        console.error(error);
+        document.body.innerHTML = "<p>❌ Error al generar la descarga.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
