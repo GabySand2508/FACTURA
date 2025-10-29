@@ -1,56 +1,127 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Descargar fecha</title>
+  <title>INVOICE</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-bottom: 20px;
+    }
+
+    td, th {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: left;
+      word-wrap: break-word;
+    }
+
+    .no-border {
+      border: none;
+    }
+
+    .center {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .highlight {
+      font-weight: bold;
+    }
+
+    .total {
+      font-size: 20px;
+      color: #000000;
+      text-align: right;
+      margin-right: 60px;
+      margin-top: 30px;
+    }
+  </style>
 </head>
 <body>
-  <p>Generando archivo de fecha...</p>
+
+  <div class="center" style="margin-top: 100px;">INVOICE</div>
+
+  <table>
+    <tr>
+      <td colspan="4"><strong>Invoice No.:</strong> <span id="refno"></span></td>
+      <td colspan="3"><strong>Invoice Date:</strong> <span id="fecha"></span></td>
+      <td colspan="3"><strong>Tracking No.:</strong> <span id="trackingno"></span></td>
+    </tr>
+    <tr>
+      <td colspan="10">
+        <strong>Shipper:</strong><br><br>
+        Name: aliexpress<br><br>
+        Address: China Guangdong dongguan zhongtang jinyuanlu Sanhe Logistics Center Logistics Park C<br>
+        Warehouse First Floor, zhongtang, dongguan, guangdong, China<br><br>
+        Tel: 19151970769
+      </td>
+    </tr>
+    <tr>
+      <td colspan="10">
+        <strong>Consignee:</strong><br><br>
+        RUC: <span id="dni"></span><br><br>
+        <span class="highlight">Name:</span> <span id="name2"></span><br><br>
+        <span class="highlight">Address:</span> <span id="direccion"></span>
+      </td>
+    </tr>
+    <tr>
+      <th colspan="4">Description</th>
+      <th colspan="2">Quantity</th>
+      <th colspan="2">Total weight (KG)</th>
+      <th colspan="2">Total value (USD)</th>
+    </tr>
+    <tr>
+      <td colspan="4" id="pkg_desc"></td>
+      <td colspan="2" id="unidad"></td>
+      <td colspan="2" id="kilos"></td>
+      <td colspan="2" id="value"></td>
+    </tr>
+  </table>
+
+  <div class="total">
+    Total Invoice Value (USD): <span id="total_value"></span>
+  </div>
 
   <script>
-    window.onload = function () {
-      try {
-        // Obtener parámetros desde la URL
-        const params = new URLSearchParams(window.location.search);
-        const refno = params.get('refno') || 'No especificado';
-        const fecha = params.get('fecha') || 'No especificada';
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
 
-        // Mostrar los datos en pantalla
-        document.body.innerHTML = `
-          <p><strong>Ref No:</strong> ${refno}</p>
-          <p><strong>Fecha:</strong> ${fecha}</p>
-          <p>Generando archivo...</p>
-        `;
 
-        // Crear contenido del archivo
-        const contenido = `Referencia: ${refno}\nFecha: ${fecha}`;
+      const mapping = {
+        refno: 'refno',
+        fecha: 'fecha',
+        trackingno: 'trackingno',
+        DNI: 'dni',
+        name2: 'name2',
+        DIRECCION: 'direccion',
+        pkg_desc: 'pkg_desc',
+        UNIDAD: 'unidad',
+        KILOS: 'kilos',
+        value: 'value'
+      };
 
-        // Crear archivo
-        const blob = new Blob([contenido], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-
-        // Crear enlace invisible para descarga
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `factura_${refno}.txt`;
-        link.style.display = "none";
-        document.body.appendChild(link);
-
-        // Forzar descarga
-        link.click();
-
-        // Limpiar
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
-        // Confirmación
-        document.body.innerHTML += "<p>✅ Archivo descargado correctamente.</p>";
-
-      } catch (error) {
-        console.error(error);
-        document.body.innerHTML = "<p>❌ Error al generar la descarga.</p>";
+      for (const key in mapping) {
+        const element = document.getElementById(mapping[key]);
+        if (element) {
+          element.textContent = params.get(key) || '';
+        }
       }
-    }
+
+
+      document.getElementById('total_value').textContent = params.get('value') || '';
+
+   
+    };
   </script>
+
 </body>
 </html>
